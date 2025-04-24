@@ -3,7 +3,7 @@ import json
 
 # Connect to the Kafka broker
 consumer = KafkaConsumer(
-    'gtfs-test-topic',  # Topic to consume
+    'feed-ace-vehicle-position',  # Topic to consume
     bootstrap_servers=['localhost:9092'],
     value_deserializer=lambda m: json.loads(m.decode('utf-8')),
     auto_offset_reset='earliest',  # Start from earliest messages

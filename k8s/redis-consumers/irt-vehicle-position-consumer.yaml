@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-consumer-irt-vehicle-position
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-consumer
+      feed: irt
+      type: vehicle-position
+  template:
+    metadata:
+      labels:
+        app: redis-consumer
+        feed: irt
+        type: vehicle-position
+    spec:
+      containers:
+        - name: consumer
+          image: johnmccormick7/mta-gtfs-pipeline:gtfs-redis-consumer-latest
+          env:
+            - name: KAFKA_TOPICS
+              value: "feed-irt-vehicle-position"
+            - name: KAFKA_BROKERS
+              valueFrom:
+                configMapKeyRef:
+                  name: kafka-config
+                  key: brokers
+            - name: REDIS_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: redis-config
+                  key: redis_addr
