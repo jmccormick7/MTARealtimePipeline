@@ -1,11 +1,4 @@
-package main
-
-import (
-    "context"
-    "encoding/json"
-    "github.com/segmentio/kafka-go"
-)
-
+package models
 /*
    TripUpdate contains information about a train's trip update. This includes the arrival and departure times for each station
    along the route, as well as the scheduled and actual track information.
@@ -51,49 +44,4 @@ type VehiclePosition struct {
 type Alert struct {
 	HeaderText    	string   `json:"header_text"`
 	InformedTripIDs []string `json:"informed_trip_ids"`
-}
-
-func PublishTripUpdate(brokers, topic string, trip_update TripUpdate) error {
-	trip_update_topic := topic + "-trip-update"
-    writer := kafka.NewWriter(kafka.WriterConfig{
-        Brokers: []string{brokers},
-        Topic:   trip_update_topic,
-    })
-    defer writer.Close()
-
-    msgBytes, _ := json.Marshal(trip_update)
-    return writer.WriteMessages(context.Background(), kafka.Message{
-        Key:   []byte(trip_update.TripID),
-        Value: msgBytes,
-    })
-}
-
-func PublishVehiclePosition(brokers, topic string, vehicle_position VehiclePosition) error {
-	vehicle_position_topic := topic + "-vehicle-position"
-	writer := kafka.NewWriter(kafka.WriterConfig{
-		Brokers: []string{brokers},
-		Topic:   vehicle_position_topic,
-	})
-	defer writer.Close()
-
-	msgBytes, _ := json.Marshal(vehicle_position)
-	return writer.WriteMessages(context.Background(), kafka.Message{
-		Key:   []byte(vehicle_position.TripID),
-		Value: msgBytes,
-	})
-}
-
-func PublishAlert(brokers, topic string, alert Alert) error {
-	alert_topic := topic + "-alert"
-	writer := kafka.NewWriter(kafka.WriterConfig{
-		Brokers: []string{brokers},
-		Topic:   alert_topic,
-	})
-	defer writer.Close()
-
-	msgBytes, _ := json.Marshal(alert)
-	return writer.WriteMessages(context.Background(), kafka.Message{
-		Key:   []byte(alert.HeaderText),
-		Value: msgBytes,
-	})
 }

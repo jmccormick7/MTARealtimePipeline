@@ -17,7 +17,7 @@ func main() {
         data, err := FetchFeed(config.FeedURL)
         if err != nil {
             log.Printf("Fetch error: %v", err)
-            continue  /
+            continue 
         }
 
         feed, err := ParseFeed(data)
