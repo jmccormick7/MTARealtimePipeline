@@ -17,6 +17,6 @@ func LoadConfig() FeedConfig {
         FeedURL:      os.Getenv("FEED_URL"),
         KafkaTopic:   os.Getenv("KAFKA_TOPIC"),
         KafkaBrokers: os.Getenv("KAFKA_BROKERS"),
-        PollInterval: 15 * time.Second, // default to 15s
+        PollInterval: 30 * time.Second, // default to 15s
     }
 }

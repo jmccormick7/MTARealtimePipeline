@@ -1,10 +1,19 @@
 package main
 
 import (
-    "log"
+	"fmt"
     "google.golang.org/protobuf/proto"
     gtfs "github.com/jmccormick7/MTARealtimePipeline/gtfs-ingestor-go/proto"  // adjust as needed
 )
+
+func ParseFeed(data []byte) (*gtfs.FeedMessage, error) {
+    feed := &gtfs.FeedMessage{}
+    err := proto.Unmarshal(data, feed)
+    if err != nil {
+        return nil, err
+    }
+    return feed, nil
+}
 // FeedMessages are either TripUpdate, VehiclePosition, or Alert
 // TripUpdate:
 //    TripID
@@ -42,7 +51,7 @@ func processFeed(feed *gtfs.FeedMessage, config FeedConfig) {
             directionId := trip.GetDirectionId()
 
             for _, stu := range tu.GetStopTimeUpdate() {
-                stopId := stu.GetStopId(),
+                stopId := stu.GetStopId()
                 arrivalTime := stu.GetArrival().GetTime()
                 departureTime := stu.GetDeparture().GetTime()
 
@@ -51,15 +60,15 @@ func processFeed(feed *gtfs.FeedMessage, config FeedConfig) {
                 if proto.HasExtension(stu, gtfs.E_NyctStopTimeUpdate) {
                     nyctStopTimeRaw := proto.GetExtension(stu, gtfs.E_NyctStopTimeUpdate)
                     if nyctStopTime, ok := nyctStopTimeRaw.(*gtfs.NyctStopTimeUpdate); ok {
-                        scheduledTrack := nyctStopTime.GetScheduledTrack()
-                        actualTrack := nyctStopTime.GetActualTrack()
+                        scheduledTrack = nyctStopTime.GetScheduledTrack()
+                        actualTrack = nyctStopTime.GetActualTrack()
 
                     }
                 }
                 tripUpdate := TripUpdate{
                 	TripID:         tripId,
                  	DirectionID:    directionId,
-                    stopID: 	    stopId,
+                    StopID: 	    stopId,
                     ArrivalTime:    arrivalTime,
                     DepartureTime:  departureTime,
                     ScheduledTrack: scheduledTrack,
@@ -88,22 +97,22 @@ func processFeed(feed *gtfs.FeedMessage, config FeedConfig) {
                 CurrentStatus:       currentStatus,
                 Timestamp:           timestamp,
             }
-            PublishTrainStatus(config.KafkaBrokers, config.KafkaTopic, vehiclePosition)
+            PublishVehiclePosition(config.KafkaBrokers, config.KafkaTopic, vehiclePosition)
         }
 
         // ---- Alerts ----
         if entity.Alert != nil {
             alert := entity.GetAlert()
             headerText := alert.GetHeaderText().GetTranslation()[0].GetText()
-            tripIds := []
+            tripIds := []string{}
             for _, informed := range alert.GetInformedEntity() {
-            	tripIds.append(informed.GetTrip().GetTripId())
+            	tripIds = append(tripIds, informed.GetTrip().GetTripId())
             }
             alertMessage := Alert{
             	HeaderText:     headerText,
                 InformedTripIDs: tripIds,
             }
-            PublishTrainStatus(config.KafkaBrokers, config.KafkaTopic, alertMessage)
+            PublishAlert(config.KafkaBrokers, config.KafkaTopic, alertMessage)
         }
     }
 }

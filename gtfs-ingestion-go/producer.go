@@ -17,8 +17,8 @@ type TripUpdate struct {
     TripID         string `json:"trip_id"`
     DirectionID    uint32 `json:"direction_id"`
     StopID         string `json:"stop_id"`
-    ArrivalTime    uint64 `json:"arrival_time"`
-    DepartureTime  uint64 `json:"departure_time"`
+    ArrivalTime    int64  `json:"arrival_time"`
+    DepartureTime  int64  `json:"departure_time"`
     ScheduledTrack string `json:"scheduled_track,omitempty"`
     ActualTrack    string `json:"actual_track,omitempty"`
 }
@@ -36,11 +36,11 @@ type TripUpdate struct {
 */
 type VehiclePosition struct {
 	TripID 				string `json:"trip_id"`
-	DirectionID 		int32  `json:"direction_id"`
+	DirectionID 		uint32 `json:"direction_id"`
 	StopID 				string `json:"stop_id"`
-	CurrentStopSequence int32  `json:"current_stop_sequence"`
+	CurrentStopSequence uint32 `json:"current_stop_sequence"`
 	CurrentStatus 		string `json:"current_status"`
-	Timestamp 			int64  `json:"timestamp"`
+	Timestamp 			uint64 `json:"timestamp"`
 }
 
 /*
@@ -62,7 +62,7 @@ func PublishTripUpdate(brokers, topic string, trip_update TripUpdate) error {
 
     msgBytes, _ := json.Marshal(trip_update)
     return writer.WriteMessages(context.Background(), kafka.Message{
-        Key:   []byte(status.TripID),
+        Key:   []byte(trip_update.TripID),
         Value: msgBytes,
     })
 }
@@ -76,7 +76,7 @@ func PublishVehiclePosition(brokers, topic string, vehicle_position VehiclePosit
 
 	msgBytes, _ := json.Marshal(vehicle_position)
 	return writer.WriteMessages(context.Background(), kafka.Message{
-		Key:   []byte(status.TripID),
+		Key:   []byte(vehicle_position.TripID),
 		Value: msgBytes,
 	})
 }
