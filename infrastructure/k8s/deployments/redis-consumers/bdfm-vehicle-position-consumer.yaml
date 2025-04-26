@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-consumer-bdfm-vehicle-position
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-consumer
+      feed: bdfm
+      type: vehicle-position
+  template:
+    metadata:
+      labels:
+        app: redis-consumer
+        feed: bdfm
+        type: vehicle-position
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      containers:
+        - name: consumer
+          image: johnmccormick7/mta-gtfs-pipeline:gtfs-redis-consumer-latest
+          imagePullPolicy: Always
+          env:
+            - name: KAFKA_TOPICS
+              value: "feed-bdfm-vehicle-position"
+            - name: KAFKA_BROKERS
+              valueFrom:
+                configMapKeyRef:
+                  name: kafka-config
+                  key: brokers
+            - name: REDIS_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: redis-config       
+                  key:  redis_addr         
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis          
+                  key:  redis-password

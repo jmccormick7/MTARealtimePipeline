@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gtfs-producer-irt
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gtfs-producer
+      feed: irt
+  template:
+    metadata:
+      labels:
+        app: gtfs-producer
+        feed: irt
+    spec:
+      serviceAccountName: bigquery-consumer-ksa
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      containers:
+        - name: producer
+          image: johnmccormick7/mta-gtfs-pipeline:v1.0.3
+          imagePullPolicy: Always
+          env:
+            - name: BQ_PROJECT
+              value: mta-realtime-pipeline
+            - name: BQ_DATASET
+              value: "mta_realtime_data"
+            - name: FEED_URL
+              value: "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs"
+            - name: REDIS_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: redis-config       
+                  key:  redis_addr        
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis          
+                  key:  redis-password
+            - name: KAFKA_TOPIC
+              value: "feed-irt"
+            - name: KAFKA_BROKERS
+              valueFrom:
+                configMapKeyRef:
+                  name: kafka-config
+                  key: brokers

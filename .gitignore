@@ -172,3 +172,11 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+infrastructure/k8s/secrets/*.yaml
+infrastructure/Makefile
+infrastructure/terraform/.terraform
+infrastructure/terraform/.terraform.lock.hcl
+infrastructure/terraform/key.json
+infrastructure/terraform/*.tfstate
+infrastructure/terraform/*.tfstate.backup
+infrastructure/terraform/*.tfvars

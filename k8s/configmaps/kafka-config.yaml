@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: kafka-config
-  namespace: default # Optional: change if you're using another namespace
-data:
-  brokers: "kafka:9092" # If running Kafka inside K8s (use service name)

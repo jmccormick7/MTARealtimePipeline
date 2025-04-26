@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bigquery-consumer-l-trip-update
+  labels:
+    app: bigquery-consumer-l-trip-update
+spec:
+  replicas: 3 # You can scale this later
+  selector:
+    matchLabels:
+      app: bigquery-consumer-l-trip-update
+  template:
+    metadata:
+      labels:
+        app: bigquery-consumer-l-trip-update
+    spec:
+      serviceAccountName: bigquery-consumer-ksa
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      containers:
+        - name: consumer
+          image: johnmccormick7/mta-gtfs-pipeline:bigquery-consumer-latest
+          imagePullPolicy: Always
+          env:
+            - name: KAFKA_BROKER
+              valueFrom:
+                configMapKeyRef:
+                  name: kafka-config
+                  key: brokers
+            - name: KAFKA_FEEDS
+              value: "feed-l-trip-update"
+            - name: BQ_DATASET_ID
+              value: "mta-realtime-pipeline.mta_realtime_data"

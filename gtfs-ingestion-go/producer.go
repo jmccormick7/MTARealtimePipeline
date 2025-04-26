@@ -4,6 +4,7 @@ import (
     "context"
     "encoding/json"
     "github.com/segmentio/kafka-go"
+    "log"
 )
 
 /*
@@ -55,6 +56,7 @@ type Alert struct {
 
 func PublishTripUpdate(brokers, topic string, trip_update TripUpdate) error {
 	trip_update_topic := topic + "-trip-update"
+	log.Printf("Publishing TripUpdate to topic %s", trip_update_topic)
     writer := kafka.NewWriter(kafka.WriterConfig{
         Brokers: []string{brokers},
         Topic:   trip_update_topic,
@@ -70,6 +72,7 @@ func PublishTripUpdate(brokers, topic string, trip_update TripUpdate) error {
 
 func PublishVehiclePosition(brokers, topic string, vehicle_position VehiclePosition) error {
 	vehicle_position_topic := topic + "-vehicle-position"
+	log.Printf("Publishing VehiclePosition to topic %s", vehicle_position_topic)
 	writer := kafka.NewWriter(kafka.WriterConfig{
 		Brokers: []string{brokers},
 		Topic:   vehicle_position_topic,
@@ -85,6 +88,7 @@ func PublishVehiclePosition(brokers, topic string, vehicle_position VehiclePosit
 
 func PublishAlert(brokers, topic string, alert Alert) error {
 	alert_topic := topic + "-alert"
+	log.Printf("Publishing Alert to topic %s", alert_topic)
 	writer := kafka.NewWriter(kafka.WriterConfig{
 		Brokers: []string{brokers},
 		Topic:   alert_topic,
