@@ -19,7 +19,7 @@ spec:
       serviceAccountName: bigquery-consumer-ksa
       containers:
         - name: producer
-          image: johnmccormick7/mta-gtfs-pipeline:v1.0.3
+          image: johnmccormick7/mta-gtfs-pipeline:v1.0.4
           imagePullPolicy: Always
           env:
             - name: BQ_PROJECT

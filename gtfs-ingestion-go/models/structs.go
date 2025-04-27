@@ -47,6 +47,7 @@ type VehiclePosition struct {
 	The HeaderText is the text of the alert, and the InformedTripIDs is a list of trip IDs that are affected by the alert.
 */
 type Alert struct {
-	HeaderText    	string   `json:"header_text"           	bigquery:"header_text"`
-	InformedTripIDs []string `json:"informed_trip_ids"    	bigquery:"informed_trip_ids"`
+	HeaderText    		string   	`json:"header_text"           	bigquery:"header_text"`
+	InformedTripIDs 	[]string 	`json:"informed_trip_ids"    	bigquery:"informed_trip_ids"`
+	PartitionTimestamp 	time.Time 	`json:"partition_timestamp"		bigquery:"partition_timestamp"`
 }

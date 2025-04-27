@@ -19,7 +19,7 @@ spec:
         kubernetes.io/arch: amd64
       containers:
         - name: producer
-          image: johnmccormick7/mta-gtfs-pipeline:v1.0.3
+          image: johnmccormick7/mta-gtfs-pipeline:v1.0.4
           imagePullPolicy: Always
           env:
             - name: BQ_PROJECT

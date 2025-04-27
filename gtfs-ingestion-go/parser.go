@@ -129,96 +129,20 @@ func processFeed(
             rec := &models.Alert{
                 HeaderText:      al.GetHeaderText().GetTranslation()[0].GetText(),
                 InformedTripIDs: ids,
+                PartitionTimestamp: time.Now(),
             }
             raw, _ := json.Marshal(rec)
             handlers.HandleAlert(ctx, rdb, raw)
             row := map[string]interface{}{
-            	"header_text":      rec.HeaderText,
-                "informed_trip_ids": rec.InformedTripIDs,
+            	"header_text":      	rec.HeaderText,
+                "informed_trip_ids": 	rec.InformedTripIDs,
+                "partition_timestamp": 	rec.PartitionTimestamp,
             }
             insertID := fmt.Sprintf("alert-%d", time.Now().UnixNano())
             alertWriter.Add(ctx, row, insertID)
         }
     }
 }
-
-// func processFeed(feed *gtfs.FeedMessage, config FeedConfig) {
-// 	for _, entity := range feed.GetEntity() {
-// 		log.Printf("Processing entity: %v", entity)
-//         // ---- TripUpdate ----
-//         if entity.TripUpdate != nil {
-//             tu := entity.GetTripUpdate()
-//             trip := tu.GetTrip()
-//             tripId := trip.GetTripId()
-//             directionId := trip.GetDirectionId()
-
-//             for _, stu := range tu.GetStopTimeUpdate() {
-//                 stopId := stu.GetStopId()
-//                 arrivalTime := stu.GetArrival().GetTime()
-//                 departureTime := stu.GetDeparture().GetTime()
-
-//                 var scheduledTrack, actualTrack string
-//                 // NYCT StopTimeUpdate extension (track info)
-//                 if proto.HasExtension(stu, gtfs.E_NyctStopTimeUpdate) {
-//                     nyctStopTimeRaw := proto.GetExtension(stu, gtfs.E_NyctStopTimeUpdate)
-//                     if nyctStopTime, ok := nyctStopTimeRaw.(*gtfs.NyctStopTimeUpdate); ok {
-//                         scheduledTrack = nyctStopTime.GetScheduledTrack()
-//                         actualTrack = nyctStopTime.GetActualTrack()
-
-//                     }
-//                 }
-//                 tripUpdate := TripUpdate{
-//                 	TripID:         tripId,
-//                  	DirectionID:    directionId,
-//                     StopID: 	    stopId,
-//                     ArrivalTime:    arrivalTime,
-//                     DepartureTime:  departureTime,
-//                     ScheduledTrack: scheduledTrack,
-//                     ActualTrack:    actualTrack,
-//                 }
-//                 PublishTripUpdate(config.KafkaBrokers, config.KafkaTopic, tripUpdate)
-//             }
-//         }
-//         // ---- VehiclePosition ----
-//         if entity.Vehicle != nil {
-//             vp := entity.GetVehicle()
-//             trip := vp.GetTrip()
-
-//             tripId := trip.GetTripId()
-//             directionId := trip.GetDirectionId()
-//             stopId := vp.GetStopId()
-//             currentStopSequence := vp.GetCurrentStopSequence()
-//             currentStatus := vp.GetCurrentStatus().String() // Status enum (INCOMING_AT, STOPPED_AT, etc.)
-//             timestamp := vp.GetTimestamp()
-
-//             vehiclePosition := VehiclePosition{
-//                 TripID:              tripId,
-//                 DirectionID:         directionId,
-//                 StopID:              stopId,
-//                 CurrentStopSequence: currentStopSequence,
-//                 CurrentStatus:       currentStatus,
-//                 Timestamp:           timestamp,
-//             }
-//             PublishVehiclePosition(config.KafkaBrokers, config.KafkaTopic, vehiclePosition)
-//         }
-
-//         // ---- Alerts ----
-//         if entity.Alert != nil {
-//             alert := entity.GetAlert()
-//             headerText := alert.GetHeaderText().GetTranslation()[0].GetText()
-//             tripIds := []string{}
-//             for _, informed := range alert.GetInformedEntity() {
-//             	tripIds = append(tripIds, informed.GetTrip().GetTripId())
-//             }
-//             alertMessage := Alert{
-//             	HeaderText:     headerText,
-//                 InformedTripIDs: tripIds,
-//             }
-//             PublishAlert(config.KafkaBrokers, config.KafkaTopic, alertMessage)
-//         }
-//     }
-// }
-
 
 
 func printFeed(feed *gtfs.FeedMessage) {
