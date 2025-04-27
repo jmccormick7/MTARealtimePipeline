@@ -127,27 +127,66 @@ with DAG(
         location='US',
         configuration={'query': {
             'query': f"""
-                INSERT INTO `{project}.{analytics_ds}.hourly_avg_headway` (date, hour, station_id, trainline, avg_headway_seconds)
-                WITH arrivals AS (
+            WITH raw_updates AS (
+              SELECT
+                trip_id,
+                stop_id,
+                REGEXP_EXTRACT(trip_id, r"_([A-Za-z0-9]+)\.{{1,2}}") AS trainline,
+                partition_timestamp,
+                TIMESTAMP_SECONDS(arrival_time)               AS ts
+              FROM `{project}.{raw_ds}.trip_updates`
+              WHERE
+                partition_timestamp >= TIMESTAMP('{{ execution_date }}')
+                AND partition_timestamp <  TIMESTAMP_ADD(
+                     TIMESTAMP('{{ execution_date }}'),
+                     INTERVAL 1 HOUR
+                   )
+                AND arrival_time IS NOT NULL
+                AND arrival_time > 0
+            ),
+            arrivals AS (
+              SELECT
+                EXTRACT(DATE FROM partition_timestamp AT TIME ZONE '{tz}') AS date,
+                EXTRACT(HOUR FROM partition_timestamp AT TIME ZONE '{tz}') AS hour,
+                stop_id             AS station_id,
+                trainline,
+                ts
+              FROM (
                 SELECT
-                    EXTRACT(DATE FROM partition_timestamp AT TIME ZONE '{tz}') AS date,
-                    EXTRACT(HOUR FROM partition_timestamp AT TIME ZONE '{tz}') AS hour,
-                    stop_id AS station_id,
-                    REGEXP_EXTRACT(trip_id, r"_([A-Za-z0-9]+)\.{{1,2}}") AS trainline,
-                    TIMESTAMP_SECONDS(arrival_time) AS ts
-                FROM `{project}.{raw_ds}.trip_updates`
-                WHERE partition_timestamp >= TIMESTAMP('{{{{ execution_date }}}}')
-                    AND partition_timestamp < TIMESTAMP_ADD(TIMESTAMP('{{{{ execution_date }}}}'), INTERVAL 1 HOUR)
-                ), diffs AS (
-                SELECT
-                    date, hour, station_id, trainline,
-                    TIMESTAMP_DIFF(ts, LAG(ts) OVER(PARTITION BY station_id, trainline ORDER BY ts), SECOND) AS headway
-                FROM arrivals
-                )
-                SELECT date, hour, station_id, trainline, AVG(headway) AS avg_headway_seconds
-                FROM diffs
-                WHERE headway IS NOT NULL
-                GROUP BY date, hour, station_id, trainline
+                  *,
+                  ROW_NUMBER() OVER(
+                    PARTITION BY trip_id, stop_id, trainline
+                    ORDER BY partition_timestamp DESC
+                  ) AS rn
+                FROM raw_updates
+              )
+              WHERE rn = 1
+            ),
+            diffs AS (
+              SELECT
+                date, hour, station_id, trainline,
+                TIMESTAMP_DIFF(
+                  ts,
+                  LAG(ts) OVER(
+                    PARTITION BY station_id, trainline
+                    ORDER BY ts
+                  ),
+                  SECOND
+                ) AS headway
+              FROM arrivals
+            )
+            
+            INSERT INTO `{project}.{analytics_ds}.hourly_avg_headway`
+              (date, hour, station_id, trainline, avg_headway_seconds)
+            SELECT
+              date,
+              hour,
+              station_id,
+              trainline,
+              AVG(headway) AS avg_headway_seconds
+            FROM diffs
+            WHERE headway IS NOT NULL
+            GROUP BY date, hour, station_id, trainline;
                 """,
             'useLegacySql': False,
 
